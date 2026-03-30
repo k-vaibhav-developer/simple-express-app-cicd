@@ -40,8 +40,8 @@ jobs:
           $username = "$env:DOCKER_USERNAME"
           $password = "$env:DOCKER_PASSWORD"
 
-          # Login to Docker using password-stdin 
-          echo $password | docker login -u $username --password-stdin
+          # Login to Docker 
+          docker login -u $username -p $password
 
       - name: Push Docker Image (Optional)
         run: docker push "${{ secrets.DOCKER_USERNAME }}/simple-express-app-cicd:latest"
