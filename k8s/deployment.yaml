@@ -14,6 +14,6 @@ spec:
     spec:
       containers:
       - name: express-container
-        image: <your-dockerhub-username>/simple-express-app-cicd:latest
+        image: ${{ secrets.DOCKER_USERNAME }}/simple-express-app-cicd:latest
         ports:
         - containerPort: 5001
