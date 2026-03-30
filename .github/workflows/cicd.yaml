@@ -36,9 +36,6 @@ jobs:
       - name: Login to DockerHub
         shell: powershell
         run: |
-          # Ensure no old credentials interfere
-          docker logout
-
           # Assign secrets to PowerShell variables
           $username = "$env:DOCKER_USERNAME"
           $password = "$env:DOCKER_PASSWORD"
