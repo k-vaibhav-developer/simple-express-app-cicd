@@ -13,3 +13,5 @@ node_modules/
 # IDE
 .vscode/
 .idea/
+
+.github/workflows/cicd-prev.yaml
