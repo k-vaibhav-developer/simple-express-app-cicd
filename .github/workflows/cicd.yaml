@@ -32,11 +32,14 @@ jobs:
       - name: Build and Load Docker Image into kind
         shell: powershell
         run: |
-          # Build Docker image
-          docker build -t "$env:DOCKER_USERNAME/simple-express-app-cicd:latest" .
+          # Combine username and image name properly
+          $imageName = $env:DOCKER_USERNAME + "/simple-express-app-cicd:latest"
 
-          # Load image into kind cluster
-          kind load docker-image "$env:DOCKER_USERNAME/simple-express-app-cicd:latest"
+          # Build Docker image
+          docker build -t $imageName .
+
+          # Load image into kind
+          kind load docker-image $imageName
 
       - name: Push Docker Image (Optional)
         run: docker push "${{ secrets.DOCKER_USERNAME }}/simple-express-app-cicd:latest"
