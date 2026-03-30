@@ -30,7 +30,8 @@ jobs:
       - name: Smoke Test
         shell: powershell
         run: |
-          node index.js & Start-Sleep -Seconds 5
+          Start-Process node index.js
+          Start-Sleep -Seconds 5
 
       # 5️⃣ Docker login to Docker Hub
       - name: Login to DockerHub
