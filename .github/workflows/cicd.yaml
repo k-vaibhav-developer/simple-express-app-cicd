@@ -1,4 +1,4 @@
-name: CI/CD Pipeline - Windows Self-Hosted runner
+name: CI/CD Pipeline
 
 on:
   push:
@@ -8,63 +8,75 @@ on:
 jobs:
 
   build:
-    runs-on: [self-hosted, windows]
+    runs-on: self-hosted
 
     steps:
+      # 1️⃣ Checkout repository
       - name: Checkout Code
         uses: actions/checkout@v3
 
+      # 2️⃣ Setup Node.js
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 18
 
+      # 3️⃣ Install dependencies
       - name: Install Dependencies
+        shell: powershell
         run: npm install
-        shell: powershell
 
+      # 4️⃣ Smoke test
       - name: Smoke Test
-        run: |
-          Start-Process -NoNewWindow node index.js
-          Start-Sleep -Seconds 5
         shell: powershell
+        run: |
+          node index.js & Start-Sleep -Seconds 5
 
-      - name: Build and Load Docker Image into kind
+      # 5️⃣ Docker login to Docker Hub
+      - name: Login to DockerHub
         shell: powershell
         run: |
-          # Assign image name using GitHub secret directly
+          docker login -u "${{ secrets.DOCKER_USERNAME }}" -p "${{ secrets.DOCKER_PASSWORD }}"
+
+      # 6️⃣ Build Docker image
+      - name: Build Docker Image
+        shell: powershell
+        run: |
           $imageName = "${{ secrets.DOCKER_USERNAME }}/simple-express-app-cicd:latest"
-
-          # Build Docker image
+          Write-Host "Building Docker image: $imageName"
           docker build -t $imageName .
 
-          # Load image into kind
-          kind load docker-image $imageName
-
-      - name: Push Docker Image (Optional)
-        run: docker push "${{ secrets.DOCKER_USERNAME }}/simple-express-app-cicd:latest"
+      # 7️⃣ Push Docker image to Docker Hub
+      - name: Push Docker Image
         shell: powershell
-        
-
-      - name: Load Docker image into kind
-        run: kind load docker-image "${{ secrets.DOCKER_USERNAME }}/simple-express-app-cicd:latest"
-        shell: powershell
+        run: |
+          $imageName = "${{ secrets.DOCKER_USERNAME }}/simple-express-app-cicd:latest"
+          docker push $imageName
 
   deploy:
     needs: build
-    runs-on: [self-hosted, windows]
+    runs-on: self-hosted
 
     steps:
+      # 1️⃣ Checkout repository
       - name: Checkout Code
         uses: actions/checkout@v3
 
+      # 2️⃣ Setup kubeconfig for kind
       - name: Set Kubeconfig
         shell: powershell
         run: |
-          $kubeDir = "$env:USERPROFILE\.kube"
-          if (-not (Test-Path $kubeDir)) { New-Item -ItemType Directory -Path $kubeDir }
-          [System.IO.File]::WriteAllText("$kubeDir\config", $env:KUBECONFIG)
+          mkdir $HOME\.kube -ErrorAction SilentlyContinue
+          echo "${{ secrets.KUBECONFIG }}" > $HOME\.kube\config
 
+      # 3️⃣ Pull Docker image from Docker Hub into kind
+      - name: Pull Docker image into kind
+        shell: powershell
+        run: |
+          $imageName = "${{ secrets.DOCKER_USERNAME }}/simple-express-app-cicd:latest"
+          kind load docker-image $imageName
+
+      # 4️⃣ Deploy to Kubernetes
       - name: Deploy to Kubernetes
         shell: powershell
         run: |
