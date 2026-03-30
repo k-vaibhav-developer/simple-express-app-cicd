@@ -32,8 +32,8 @@ jobs:
       - name: Build and Load Docker Image into kind
         shell: powershell
         run: |
-          # Combine username and image name properly
-          $imageName = $env:DOCKER_USERNAME + "/simple-express-app-cicd:latest"
+          # Assign image name using GitHub secret directly
+          $imageName = "${{ secrets.DOCKER_USERNAME }}/simple-express-app-cicd:latest"
 
           # Build Docker image
           docker build -t $imageName .
