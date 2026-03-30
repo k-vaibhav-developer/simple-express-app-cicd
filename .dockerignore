@@ -1,0 +1,19 @@
+# Don't copy local dependencies
+node_modules
+
+# Git
+.git
+.gitignore
+
+# Env
+.env
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+
+# IDE
+.vscode
+.idea
